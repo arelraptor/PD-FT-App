@@ -20,13 +20,14 @@ class Video(db.Model):
     description = db.Column(db.Text)
     state = db.Column(db.Integer, default=0, nullable=False)
     prediction = db.Column(db.Integer)
+    visible = db.Column(db.Boolean,default=True,nullable=False)
 
-    def __init__(self, created_by, title, description, prediction, state = 0):
+    def __init__(self, created_by, title, description, state = 0, visible = True):
         self.created_by = created_by
         self.title = title
         self.description = description
         self.state = state
-        self.prediction = prediction
+        self.visible = visible
 
     def __repr__(self):
         return f'<Video {self.title}>'

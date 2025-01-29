@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <section class="container-fluid">
+        <nav class="navbar">
+            <h1>{% block title %}Video list{% endblock %}</h1>
+            <a href="{{ url_for('view.upload') }}" class="btn btn-success">Upload</a>
+        </nav>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col">Videos</th>
+                    <th class="col">State</th>
+                    <th class="col">Prediction</th>
+                    <th class="col text-center" colspan="2">Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                {%  for video in videos | reverse%}
+                    {% if g.user.id ==video.created_by and video.visible == True %}
+                        <tr>
+                            <td>
+                                <h5>{{ video.title }}</h5>
+                                <p>{{ video.description }}</p>
+                            </td>
+                            <td>{{ video.state }}</td>
+                            <td>{{ video.prediction }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('view.update', id=video.id) }}" class="btn btn-info btn-sm">Edit</a>
+                            </td>
+                            <td class="text-center">
+                                <a href="" class="btn btn-danger btn-sm">Delete</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {%  endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}
