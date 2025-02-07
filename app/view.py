@@ -4,6 +4,8 @@ from app.auth import login_required
 from .models import Video, User
 from app import db
 
+import os
+
 bp = Blueprint ('view', __name__, url_prefix='/view')
 
 @bp.route('/list')
@@ -16,13 +18,25 @@ def list():
 @login_required
 def upload():
     if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        video = Video(g.user.id, title, description)
+        file = request.files['videofile']
 
-        db.session.add(video)
-        db.session.commit()
-        return redirect(url_for('view.list'))
+        if file:
+            filename = os.path.join('uploads\\', file.filename)
+            title=file.filename
+            description = request.form['description']
+
+            if os.path.exists(filename):
+                dot_position_full_path=filename.rfind('.')
+                filename=filename[0:dot_position_full_path]+'_2'+filename[dot_position_full_path:]
+                dot_position_title = title.rfind('.')
+                title = title[0:dot_position_title] + '_2' + title[dot_position_title:]
+
+            file.save(filename)
+
+            video = Video(g.user.id, title, description)
+            db.session.add(video)
+            db.session.commit()
+            return redirect(url_for('view.list'))
     return render_template('view/upload.html')
 
 def get_video(id):

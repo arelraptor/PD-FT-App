@@ -3,14 +3,17 @@
 {% block content %}
     <section class="container-sm">
         <h3 class="text-center mt-3 mb-3">{% block title %}Upload video{% endblock %}</h3>
-        <form action="" method="post">
-            <div class="form-group">
-                <label for="title">Title</label>
-                <input type="text" class="form-control" id="title" name="title" required>
-            </div>
+        <form action="" method="post" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="description">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <br>
+            <div class="input-group mb-3">
+                <label for="videofile" class="input-group-text bg-secondary text-white">Upload file:</label>
+                <input type="file" class="form-control visually-hidden" id="videofile" name="videofile"
+                       onchange="updateFileName(this)" accept=".mov, .mkv, .mp4, .avi" required>
+                        <span class="form-control bg-light text-secondary" id="fileNameDisplay">Choose file</span>
             </div>
             <br>
             <div class="text-center">
@@ -19,4 +22,30 @@
             </div>
         </form>
     </section>
+    <script>
+        // Change the label text when a file is selected
+        let file_Name_Display = document
+            .getElementById("fileNameDisplay");
+
+        function updateFileName(input) {
+            if (input.files.length > 0) {
+                file_Name_Display
+                    .innerText = "You chose: " + input.files[0].name;
+                file_Name_Display
+                    .classList.remove("bg-light");
+                file_Name_Display
+                    .classList
+                    .add("bg-primary", "text-white");
+            }
+            else {
+                file_Name_Display
+                    .innerText = "Choose file";
+                file_Name_Display
+                    .classList.remove("bg-primary", "text-white");
+                file_Name_Display
+                    .classList
+                    .add("bg-light", "text-secondary");
+            }
+        }
+    </script>
 {% endblock %}
