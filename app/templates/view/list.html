@@ -23,8 +23,38 @@
                                 <h5>{{ video.title }}</h5>
                                 <p>{{ video.description }}</p>
                             </td>
-                            <td>{{ video.state }}</td>
-                            <td>{{ video.prediction }}</td>
+                            {% if video.state==0 %}
+                                <td>
+                                    <img src="../../static/img/settingsorange.png" alt="In progress" >
+                                </td>
+                            {% else %}
+                                <td>
+                                    <img src="../../static/img/checkmarkgreen.png" alt="Analyzed" >
+                                </td>
+                            {% endif %}
+                            {% if video.prediction == 0 %}
+                                <td style="background-color: lightgreen; text-align: center; vertical-align: middle;">
+                                    {{ video.prediction }}
+                                </td>
+                            {% elif video.prediction == 1 %}
+                                <td style="background-color: lightyellow; text-align: center; vertical-align: middle;">
+                                    {{ video.prediction }}
+                                </td>
+                            {% elif video.prediction == 2 %}
+                                <td style="background-color: lightpink; text-align: center; vertical-align: middle;">
+                                    {{ video.prediction }}
+                                </td>
+                            {% elif video.prediction == 3 %}
+                                <td style="background-color: lightsalmon; text-align: center; vertical-align: middle;">
+                                    {{ video.prediction }}
+                                </td>
+                            {% elif video.prediction == 4 %}
+                                <td style="background-color: lightcoral; text-align: center; vertical-align: middle;">
+                                    {{ video.prediction }}
+                                </td>
+                            {% else %}
+                                <td>N/A</td>
+                            {% endif %}
                             <td class="text-center">
                                 <a href="{{ url_for('view.update', id=video.id) }}" class="btn btn-info btn-sm">Edit</a>
                             </td>

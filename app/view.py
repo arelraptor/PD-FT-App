@@ -6,6 +6,8 @@ from app import db
 
 import os
 
+import subprocess
+
 bp = Blueprint ('view', __name__, url_prefix='/view')
 
 @bp.route('/list')
@@ -36,6 +38,8 @@ def upload():
             video = Video(g.user.id, title, description)
             db.session.add(video)
             db.session.commit()
+            subprocess.Popen(['python', 'myscript.py',filename,str(video.id)])
+
             return redirect(url_for('view.list'))
     return render_template('view/upload.html')
 
