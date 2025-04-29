@@ -42,7 +42,8 @@ def login():
 
         #Validate data
         user = User.query.filter_by(username=username).first()
-        if user is None or check_password_hash(user.password, password):
+
+        if user is None or check_password_hash(user.password, password) is False:
             error = 'Incorrect username or password'
 
         if error is None:

@@ -56,3 +56,15 @@ def update(id):
 
         return redirect(url_for('view.list'))
     return render_template('view/update.html',video=video)
+
+@bp.route('/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete(id):
+    video = get_video(id)
+    if request.method == 'POST':
+        video.visible=0
+
+        db.session.commit()
+
+        return redirect(url_for('view.list'))
+    return render_template('view/delete.html',video=video)
