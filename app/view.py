@@ -8,6 +8,23 @@ import os
 
 import subprocess
 
+def get_video(id):
+    video = Video.query.get_or_404(id)
+    return video
+
+def get_unique_name(uploaded_file):
+    # Split name and extension
+    base, ext = os.path.splitext(uploaded_file)
+    counter = 1
+    new_name = uploaded_file
+
+    # While file exits, increase the counter
+    while os.path.exists(new_name):
+        new_name = f"{base}_{counter}{ext}"
+        counter += 1
+
+    return new_name
+
 bp = Blueprint ('view', __name__, url_prefix='/view')
 
 @bp.route('/list')
@@ -24,16 +41,12 @@ def upload():
 
         if file:
             filename = os.path.join('uploads\\', file.filename)
-            title=file.filename
-            description = request.form['description']
-
-            if os.path.exists(filename):
-                dot_position_full_path=filename.rfind('.')
-                filename=filename[0:dot_position_full_path]+'_2'+filename[dot_position_full_path:]
-                dot_position_title = title.rfind('.')
-                title = title[0:dot_position_title] + '_2' + title[dot_position_title:]
+            filename=get_unique_name(filename)
 
             file.save(filename)
+
+            description = request.form['description']
+            title = filename.split('\\')[-1]
 
             video = Video(g.user.id, title, description)
             db.session.add(video)
@@ -43,10 +56,6 @@ def upload():
 
             return redirect(url_for('view.list'))
     return render_template('view/upload.html')
-
-def get_video(id):
-    video = Video.query.get_or_404(id)
-    return video
 
 @bp.route('/update/<int:id>', methods=['GET', 'POST'])
 @login_required

@@ -4,7 +4,10 @@
     <section class="container-fluid">
         <nav class="navbar">
             <h1>{% block title %}Video list{% endblock %}</h1>
-            <a href="{{ url_for('view.upload') }}" class="btn btn-success">Upload</a>
+            <div style="text-align: right">
+                <a href="{{ url_for('view.list') }}" class="btn btn-warning">Refresh</a>
+                <a href="{{ url_for('view.upload') }}" class="btn btn-success">Upload</a>
+            </div>
         </nav>
         <table class="table">
             <thead>
