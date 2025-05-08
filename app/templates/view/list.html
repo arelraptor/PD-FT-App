@@ -27,9 +27,13 @@
                                 <td>
                                     <img src="../../static/img/settingsorange.png" alt="In progress" >
                                 </td>
-                            {% else %}
+                            {% elif video.state==1 %}
                                 <td>
                                     <img src="../../static/img/checkmarkgreen.png" alt="Analyzed" >
+                                </td>
+                            {% else %}
+                                <td>
+                                    <img src="../../static/img/redcross.png" alt="Error" >
                                 </td>
                             {% endif %}
                             {% if video.prediction == 0 %}
@@ -51,6 +55,10 @@
                             {% elif video.prediction == 4 %}
                                 <td style="background-color: lightcoral; text-align: center; vertical-align: middle;">
                                     {{ video.prediction }}
+                                </td>
+                            {% elif video.prediction == -1 %}
+                                <td style="background-color: crimson; text-align: center; vertical-align: middle;">
+                                    <90%
                                 </td>
                             {% else %}
                                 <td>N/A</td>

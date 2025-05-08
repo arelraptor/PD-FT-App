@@ -1,1 +1,8 @@
 flask
+pandas~=2.2.3
+numpy~=1.26.4
+tsfresh~=0.20.3
+opencv-python~=4.8.0.76
+scipy~=1.14.1
+mediapipe~=0.10.18
+scikit-learn~=1.4.2

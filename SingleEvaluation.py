@@ -1,0 +1,41 @@
+
+import VideoProcessingSingle as vp
+import pickle
+import numpy as np
+from tsfresh import extract_features
+
+def get_evaluation(filename):
+
+    data_final, frame_percentage = vp.processVideo(filename)
+
+    print(frame_percentage)
+    print("####")
+    if frame_percentage > 90:
+        #Cogemos el orden de las columnas según se entreno el modelo
+        order_columns_pkl_file = "model/order_colums.pkl"
+        with open(order_columns_pkl_file, 'rb') as file:  
+            order_columns = pickle.load(file)
+
+        #Cogemos el diccionaria tal cual de variables que selecciono tsfresh
+        dict_pkl_file = "model/dictionary.pkl"
+        with open(dict_pkl_file, 'rb') as file:  
+            mydict = pickle.load(file)
+
+        data_final=data_final.drop(columns=['Distancia_norm'])
+        data_final["id"]="UploadedVideo"
+
+        X = extract_features(data_final, kind_to_fc_parameters =mydict,column_id="id",n_jobs=0)
+
+        model_pkl_file = "model/model.pkl"
+        with open(model_pkl_file, 'rb') as file:  
+            model = pickle.load(file)
+        print("he cargado el modelo")
+        x_ordered=X[order_columns]
+
+        value=model.predict(np.array(x_ordered))[0]
+    else:
+        value=-1
+
+    return value
+
+    

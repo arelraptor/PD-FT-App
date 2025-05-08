@@ -38,13 +38,13 @@ def upload():
             video = Video(g.user.id, title, description)
             db.session.add(video)
             db.session.commit()
+            print("llamo a mi script")
             subprocess.Popen(['python', 'myscript.py',filename,str(video.id)])
 
             return redirect(url_for('view.list'))
     return render_template('view/upload.html')
 
 def get_video(id):
-    print(id)
     video = Video.query.get_or_404(id)
     return video
 

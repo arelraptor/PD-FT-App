@@ -2,27 +2,29 @@ import time,sys
 from app.models import Video
 from app import db
 import sqlite3
+from SingleEvaluation import get_evaluation
 
-def get_video_per_id(id):
-    print(id)
-    my_video = Video.query.get_or_404(id)
-    return my_video
-
-cnx = sqlite3.connect('instance/ftpredictor.db')
-cursor = cnx.cursor()
-
-for i in range(2):
-    print(f"Ejecutando tarea {i}")
-    time.sleep(1)
+#def get_video_per_id(id):
+#    print(id)
+#    my_video = Video.query.get_or_404(id)
+#    return my_video
 
 print ('argument 1', sys.argv[1])
 print ('argument 2', sys.argv[2])
 
 mi_id=int(sys.argv[2])
 
+evaluation=int(get_evaluation(sys.argv[1]))
 #cursor.execute("SELECT title FROM video WHERE id=?",(mi_id,))
+print('evaluation', evaluation)
 
-cursor.execute("UPDATE video SET state=1 WHERE id=?",(mi_id,))
+cnx = sqlite3.connect('instance/ftpredictor.db')
+cursor = cnx.cursor()
+
+if evaluation==-1:
+    cursor.execute("UPDATE video SET state=2, prediction=? WHERE id=?", (evaluation,mi_id,))
+else:
+    cursor.execute("UPDATE video SET state=1, prediction=? WHERE id=?", (evaluation,mi_id,))
 
 # 6. -COMMIT CHANGES! (mandatory if you want to save these changes in the database)
 cnx.commit()
