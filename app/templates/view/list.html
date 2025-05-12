@@ -23,48 +23,59 @@
                     {% if g.user.id ==video.created_by and video.visible == True %}
                         <tr>
                             <td>
-                                <h5>{{ video.title }}</h5>
+                                <h5>
+                                    {% if video.state==1 %}
+                                        <a  class="text-reset text-decoration-none" href="javascript:void(0);" onclick="toggleImage('{{ video.id }}')">
+                                            {{ video.title }}
+                                        </a>
+                                    {% else %}
+                                        {{ video.title }}
+                                    {% endif %}
+                                </h5>
                                 <p>{{ video.description }}</p>
+                                <div id="screenshot-{{ video.id }}" style="display: none;">
+    <img src="{{ url_for('static', filename='screenshots/' + video.id|string + '.png') }}" alt="Screenshot" class="img-fluid" style="max-height: 400px;">
+</div>
                             </td>
                             {% if video.state==0 %}
                                 <td>
-                                    <img src="../../static/img/settingsorange.png" alt="In progress" >
+                                    <img src="{{ url_for('static', filename='img/settingsorange.png')}}" alt="In progress" >
                                 </td>
                             {% elif video.state==1 %}
                                 <td>
-                                    <img src="../../static/img/checkmarkgreen.png" alt="Analyzed" >
+                                    <img src="{{ url_for('static', filename='img/checkmarkgreen.png')}}" alt="Analyzed" >
                                 </td>
                             {% else %}
                                 <td>
-                                    <img src="../../static/img/redcross.png" alt="Error" >
+                                    <img src="{{ url_for('static', filename='img/redcross.png')}}"  alt="Error" >
                                 </td>
                             {% endif %}
                             {% if video.prediction == 0 %}
-                                <td style="background-color: lightgreen; text-align: center; vertical-align: middle;">
+                                <td style="background-color: lightgreen;" class="cell-middle">
                                     {{ video.prediction }}
                                 </td>
                             {% elif video.prediction == 1 %}
-                                <td style="background-color: lightyellow; text-align: center; vertical-align: middle;">
+                                <td style="background-color: lightyellow;" class="cell-middle">
                                     {{ video.prediction }}
                                 </td>
                             {% elif video.prediction == 2 %}
-                                <td style="background-color: lightpink; text-align: center; vertical-align: middle;">
+                                <td style="background-color: lightpink;" class="cell-middle">
                                     {{ video.prediction }}
                                 </td>
                             {% elif video.prediction == 3 %}
-                                <td style="background-color: lightsalmon; text-align: center; vertical-align: middle;">
+                                <td style="background-color: lightsalmon;" class="cell-middle">
                                     {{ video.prediction }}
                                 </td>
                             {% elif video.prediction == 4 %}
-                                <td style="background-color: lightcoral; text-align: center; vertical-align: middle;">
+                                <td style="background-color: lightcoral;" class="cell-middle">
                                     {{ video.prediction }}
                                 </td>
                             {% elif video.prediction == -1 %}
-                                <td style="background-color: crimson; text-align: center; vertical-align: middle;">
+                                <td style="background-color: crimson;" class="cell-middle">
                                     <90%
                                 </td>
                             {% else %}
-                                <td style="text-align: center; vertical-align: middle;">N/A</td>
+                                <td class="cell-middle">N/A</td>
                             {% endif %}
                             <td class="text-center">
                                 <a href="{{ url_for('view.update', id=video.id) }}" class="btn btn-info btn-sm">Edit</a>
@@ -78,4 +89,16 @@
             </tbody>
         </table>
     </section>
+
+<script>
+    function toggleImage(id) {
+        var element = document.getElementById('screenshot-' + id);
+        if (element.style.display === 'none') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}
+
