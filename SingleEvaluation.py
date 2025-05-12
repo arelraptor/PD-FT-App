@@ -4,9 +4,9 @@ import pickle
 import numpy as np
 from tsfresh import extract_features
 
-def get_evaluation(filename):
+def get_evaluation(filename,video_id):
 
-    data_final, frame_percentage = vp.processVideo(filename)
+    data_final, frame_percentage = vp.processVideo(filename,video_id)
 
     print(frame_percentage)
     print("####")

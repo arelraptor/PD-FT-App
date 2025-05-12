@@ -8,8 +8,9 @@ from mediapipe import Image, ImageFormat
 from mediapipe.tasks.python.vision import HandLandmarker, HandLandmarkerOptions, RunningMode
 from mediapipe.tasks.python import BaseOptions
 from mediapipe.framework.formats import landmark_pb2
+from mediapipe import solutions
 
-def processVideo(path_video):
+def processVideo(path_video,video_id):
 
     #definición de las columnas de coordenadas
 
@@ -26,12 +27,12 @@ def processVideo(path_video):
     #inicializamos las variables finales
     data_final=pd.DataFrame()
     taps_done=pd.Series(dtype='float')
-    frame_porcentaje=pd.DataFrame()
-    
+
     bueno=0
     malo=0
     todos=0
     porcentaje=0
+    image_saved=0
     
     base_options = BaseOptions(model_asset_path='model/hand_landmarker.task')
     options = HandLandmarkerOptions(base_options=base_options, running_mode=RunningMode.IMAGE, num_hands=1)
@@ -63,7 +64,10 @@ def processVideo(path_video):
             #print(results)
             hand_video=results.handedness[0][0].category_name
             bueno=bueno+1
-            #annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), results)
+            if image_saved==0 and (bueno+malo>20):
+                annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), results)
+                cv2.imwrite('app/static/screenshots/'+str(video_id)+'.png', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
+                image_saved = 1
             #bgr_frame = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
             #plt.imshow(cv2.cvtColor(bgr_frame,cv2.COLOR_RGB2BGR))
             #plt.show()
@@ -240,3 +244,45 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
     y = np.concatenate((firstvals, y, lastvals))
     return np.convolve( m[::-1], y, mode='valid')
+
+
+def draw_landmarks_on_image(rgb_image, detection_result):
+    MARGIN = 10  # pixels
+    FONT_SIZE = 3
+    FONT_THICKNESS = 3
+    HANDEDNESS_TEXT_COLOR = (255, 0, 0)  # RED
+
+    hand_landmarks_list = detection_result.hand_landmarks
+    handedness_list = detection_result.handedness
+    annotated_image = np.copy(rgb_image)
+
+    # Loop through the detected hands to visualize.
+    for idx in range(len(hand_landmarks_list)):
+        hand_landmarks = hand_landmarks_list[idx]
+        handedness = handedness_list[idx]
+
+        # Draw the hand landmarks.
+        hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        hand_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
+        ])
+        solutions.drawing_utils.draw_landmarks(
+            annotated_image,
+            hand_landmarks_proto,
+            solutions.hands.HAND_CONNECTIONS,
+            solutions.drawing_styles.get_default_hand_landmarks_style(),
+            solutions.drawing_styles.get_default_hand_connections_style())
+
+        # Get the top left corner of the detected hand's bounding box.
+        height, width, _ = annotated_image.shape
+        x_coordinates = [landmark.x for landmark in hand_landmarks]
+        y_coordinates = [landmark.y for landmark in hand_landmarks]
+        text_x = int(min(x_coordinates) * width)
+        text_y = int(min(y_coordinates) * height) - MARGIN
+
+        # Draw handedness (left or right hand) on the image.
+        cv2.putText(annotated_image, f"{handedness[0].category_name}",
+                    (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
+                    FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
+
+    return annotated_image

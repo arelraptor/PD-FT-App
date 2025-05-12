@@ -14,7 +14,7 @@ print ('argument 2', sys.argv[2])
 
 mi_id=int(sys.argv[2])
 
-evaluation=int(get_evaluation(sys.argv[1]))
+evaluation=int(get_evaluation(sys.argv[1],mi_id))
 #cursor.execute("SELECT title FROM video WHERE id=?",(mi_id,))
 print('evaluation', evaluation)
 
