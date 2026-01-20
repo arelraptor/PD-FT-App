@@ -21,7 +21,7 @@ def get_evaluation(filename,video_id):
         with open(dict_pkl_file, 'rb') as file:  
             mydict = pickle.load(file)
 
-        data_final=data_final.drop(columns=['Distancia_norm'])
+        #data_final=data_final.drop(columns=['Distancia_norm'])
         data_final["id"]="UploadedVideo"
 
         X = extract_features(data_final, kind_to_fc_parameters =mydict,column_id="id",n_jobs=0)
@@ -29,6 +29,7 @@ def get_evaluation(filename,video_id):
         model_pkl_file = "model/model.pkl"
         with open(model_pkl_file, 'rb') as file:  
             model = pickle.load(file)
+        print("he cargado el modelo")
         print("he cargado el modelo")
         x_ordered=X[order_columns]
 
