@@ -5,6 +5,7 @@ from .models import Video, User
 from app import db
 
 import os
+import sys
 
 import subprocess
 
@@ -40,19 +41,26 @@ def upload():
         file = request.files['videofile']
 
         if file:
-            filename = os.path.join('uploads', file.filename)
-            filename=get_unique_name(filename)
+            # 1. Definimos la ruta física para guardar el archivo
+            relative_path = os.path.join('uploads', file.filename)
+            filename = get_unique_name(relative_path)  # Esto sigue siendo "uploads/nombre.avi"
 
             file.save(filename)
 
             description = request.form['description']
-            title = filename.split('\\')[-1]
+
+            # 2. CORRECCIÓN: Usamos os.path.basename para obtener SOLO el nombre,
+            # sin importar si hay / o \
+            title = os.path.basename(filename)
 
             video = Video(g.user.id, title, description)
             db.session.add(video)
             db.session.commit()
+
             print("llamo a mi script")
-            subprocess.Popen(['python', 'myscript.py',filename,str(video.id)])
+            # 3. Importante: Para el script pasamos 'filename' (ruta completa),
+            # pero para la DB guardamos 'title' (solo nombre).
+            subprocess.Popen([sys.executable, 'myscript.py', filename, str(video.id)])
 
             return redirect(url_for('view.list'))
     return render_template('view/upload.html')
