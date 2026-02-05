@@ -2,6 +2,7 @@ import time,sys
 from app.models import Video
 from app import db
 import sqlite3
+import os
 from SingleEvaluation import get_evaluation
 
 #def get_video_per_id(id):
@@ -18,7 +19,8 @@ evaluation=int(get_evaluation(sys.argv[1],mi_id))
 #cursor.execute("SELECT title FROM video WHERE id=?",(mi_id,))
 print('evaluation', evaluation)
 
-cnx = sqlite3.connect('instance/ftpredictor.db')
+ruta_db = os.path.join('instance', 'ftpredictor.db')
+cnx = sqlite3.connect(ruta_db)
 cursor = cnx.cursor()
 
 if evaluation==-1:

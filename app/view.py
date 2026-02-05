@@ -40,7 +40,7 @@ def upload():
         file = request.files['videofile']
 
         if file:
-            filename = os.path.join('uploads\\', file.filename)
+            filename = os.path.join('uploads', file.filename)
             filename=get_unique_name(filename)
 
             file.save(filename)

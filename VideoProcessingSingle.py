@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import pandas as pd
+import os
 from scipy.signal import find_peaks
 import math
 
@@ -32,7 +33,7 @@ def processVideo(path_video,video_id):
     image_saved=0
 
     # Initialize MediaPipe options
-    base_options = BaseOptions(model_asset_path='model/hand_landmarker.task')
+    base_options = BaseOptions(model_asset_path=os.path.join('model', 'hand_landmarker.task'))
     options = HandLandmarkerOptions(base_options=base_options, running_mode=RunningMode.IMAGE, num_hands=1)
     detector = HandLandmarker.create_from_options(options)
 
@@ -64,7 +65,8 @@ def processVideo(path_video,video_id):
 
             if image_saved==0 and (good_frames_count + bad_frames_count > 20):
                 annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), results)
-                cv2.imwrite('app/static/screenshots/'+str(video_id)+'.png', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
+                path = os.path.join('app', 'static', 'screenshots', str(video_id) + '.png')
+                cv2.imwrite(path, cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
                 image_saved = 1
 
         else:
