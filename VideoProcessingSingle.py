@@ -213,26 +213,38 @@ def calculate_amplitude(row):
                                               row['INDEX_X'], row['INDEX_Y'], row['INDEX_Z'])
     return thumb_index_distance
 
+
 def draw_landmarks_on_image(rgb_image, detection_result):
-    MARGIN = 10  # pixels
-    FONT_SIZE = 3
-    FONT_THICKNESS = 3
-    HANDEDNESS_TEXT_COLOR = (255, 0, 0)  # RED
+    height, width, _ = rgb_image.shape
+
+    # --- AJUSTES DINÁMICOS MEJORADOS ---
+    # Usamos una base de 1.0 y le sumamos proporcionalmente para que nunca sea diminuto
+    # 0.0015 suele ser el "sweet spot" para resoluciones altas
+    font_scale = max(1.0, width * 0.002)
+
+    # Grosor mínimo de 2 para que sea legible en resoluciones bajas
+    thickness = max(2, int(width * 0.003))
+
+    # Margen proporcional pero con un mínimo de 20px
+    margin = max(20, int(height * 0.05))
+
+    HANDEDNESS_TEXT_COLOR = (255, 0, 0)  # Rojo
 
     hand_landmarks_list = detection_result.hand_landmarks
     handedness_list = detection_result.handedness
     annotated_image = np.copy(rgb_image)
 
-    # Loop through the detected hands to visualize.
     for idx in range(len(hand_landmarks_list)):
         hand_landmarks = hand_landmarks_list[idx]
         handedness = handedness_list[idx]
 
-        # Draw the hand landmarks.
+        # 1. Dibujar los landmarks (puntos y líneas)
         hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
         hand_landmarks_proto.landmark.extend([
-            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z)
+            for landmark in hand_landmarks
         ])
+
         solutions.drawing_utils.draw_landmarks(
             annotated_image,
             hand_landmarks_proto,
@@ -240,16 +252,30 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             solutions.drawing_styles.get_default_hand_landmarks_style(),
             solutions.drawing_styles.get_default_hand_connections_style())
 
-        # Get the top left corner of the detected hand's bounding box.
-        height, width, _ = annotated_image.shape
+        # 2. Posicionamiento del texto
         x_coordinates = [landmark.x for landmark in hand_landmarks]
         y_coordinates = [landmark.y for landmark in hand_landmarks]
-        text_x = int(min(x_coordinates) * width)
-        text_y = int(min(y_coordinates) * height) - MARGIN
 
-        # Draw handedness (left or right hand) on the image.
+        # Coordenadas en píxeles reales
+        text_x = int(min(x_coordinates) * width)
+        text_y = int(min(y_coordinates) * height) - margin
+
+        # 3. Corrección de seguridad: Que el texto no flote fuera de la imagen
+        # Si la mano está muy arriba, ponemos el texto debajo de la mano o al borde superior
+        if text_y < 50:
+            text_y = int(max(y_coordinates) * height) + margin + 20
+
+        # Si aún así se sale por abajo
+        if text_y > height:
+            text_y = 50
+
+        # 4. Dibujar el texto final
         cv2.putText(annotated_image, f"{handedness[0].category_name}",
-                    (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
-                    FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
+                    (text_x, text_y),
+                    cv2.FONT_HERSHEY_DUPLEX,
+                    font_scale,
+                    HANDEDNESS_TEXT_COLOR,
+                    thickness,
+                    cv2.LINE_AA)
 
     return annotated_image
