@@ -6,3 +6,4 @@ opencv-python~=4.8.0.76
 scipy~=1.14.1
 mediapipe~=0.10.18
 scikit-learn~=1.4.2
+ffmpeg-python

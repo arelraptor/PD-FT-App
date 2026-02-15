@@ -32,24 +32,22 @@
                                         {{ video.title }}
                                     {% endif %}
                                 </h5>
-                                <p>{{ video.description }}</p>
-                                <div id="screenshot-{{ video.id }}" style="display: none;">
-    <img src="{{ url_for('static', filename='screenshots/' + video.id|string + '.png') }}" alt="Screenshot" class="img-fluid" style="max-height: 400px;">
-</div>
+                                <p class="text-secondary">{{ video.description }}</p>
+                                {% if video.state==1 %}
+                                    <div id="screenshot-{{ video.id }}" style="display: none;">
+                                        <img src="{{ url_for('static', filename='screenshots/' + video.id|string + '.png') }}" alt="Screenshot" class="img-fluid" style="max-height: 400px;">
+                                    </div>
+                                {% endif %}
                             </td>
-                            {% if video.state==0 %}
-                                <td>
-                                    <img src="{{ url_for('static', filename='img/settingsorange.png')}}" alt="In progress" >
-                                </td>
-                            {% elif video.state==1 %}
-                                <td>
-                                    <img src="{{ url_for('static', filename='img/checkmarkgreen.png')}}" alt="Analyzed" >
-                                </td>
-                            {% else %}
-                                <td>
-                                    <img src="{{ url_for('static', filename='img/redcross.png')}}"  alt="Error" >
-                                </td>
-                            {% endif %}
+                            <td class="cell-left">
+                                {% if video.state == 0 %}
+                                    <img src="{{ url_for('static', filename='img/settingsorange.png') }}"  data-bs-toggle="tooltip" title="Video is being processed">
+                                {% elif video.state == 1 %}
+                                    <img src="{{ url_for('static', filename='img/checkmarkgreen.png') }}"  data-bs-toggle="tooltip" title="Processing finished successfully">
+                                {% elif video.state == 2 %}
+                                    <img src="{{ url_for('static', filename='img/redcross.png') }}"  data-bs-toggle="tooltip" title="Error during processing">
+                                {% endif %}
+                            </td>
                             {% if video.prediction == 0 %}
                                 <td style="background-color: lightgreen;" class="cell-middle">
                                     {{ video.prediction }}
@@ -99,6 +97,13 @@
             element.style.display = 'none';
         }
     }
+
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
 </script>
 {% endblock %}
-

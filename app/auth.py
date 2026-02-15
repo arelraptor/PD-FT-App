@@ -14,21 +14,38 @@ bp = Blueprint ('auth', __name__, url_prefix='/auth')
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
+        # Get all fields from the form
         username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        institution = request.form['institution']
 
-        user=User(username, generate_password_hash(password))
+        # Create user instance with hashed password
+        user = User(
+            username,
+            email,
+            generate_password_hash(password),
+            first_name,
+            last_name,
+            institution
+        )
 
-        error=None
+        error = None
 
-        user_name = User.query.filter_by(username=username).first()
-        if user_name == None:
+        # Check if username or email already exists
+        if User.query.filter_by(username=username).first():
+            error = f'User {username} already exists'
+        elif User.query.filter_by(email=email).first():
+            error = f'Email {email} is already registered'
+
+        if error is None:
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('auth.login'))
-        else:
-            error = f'User {username} already exists'
-            flash(error)
+
+        flash(error)
 
     return render_template('auth/register.html')
 

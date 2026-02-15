@@ -5,6 +5,8 @@ import os
 from scipy.signal import find_peaks
 import math
 
+import ffmpeg
+
 from mediapipe import Image, ImageFormat
 from mediapipe.tasks.python.vision import HandLandmarker, HandLandmarkerOptions, RunningMode
 from mediapipe.tasks.python import BaseOptions
@@ -40,8 +42,24 @@ def processVideo(path_video,video_id):
     frames = []
     hands = []
     handedness = None
-    
+
+    # 1. Detect rotation and frame size BEFORE the loop
+    rotation_angle = get_video_rotation(path_video)
     cap = cv2.VideoCapture(path_video)
+
+    # Check if the OS (like Windows) is already rotating the video automatically
+    success, first_frame = cap.read()
+    os_already_rotated = False
+
+    if success and rotation_angle in [90, 270]:
+        h, w = first_frame.shape[:2]
+        # If the frame height is greater than width, it's already in portrait (rotated)
+        if h > w:
+            os_already_rotated = True
+
+    # Reset video pointer to the beginning
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     while cap.isOpened():
@@ -50,11 +68,19 @@ def processVideo(path_video,video_id):
         if not success:
             break
 
-        #frame = cv2.flip(frame, 1)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # 2. Manual rotation ONLY if the OS hasn't done it yet
+        if not os_already_rotated:
+            if rotation_angle == 90:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+            elif rotation_angle == 180:
+                frame = cv2.rotate(frame, cv2.ROTATE_180)
+            elif rotation_angle == 270:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        # Process the frame using HandLandmarker
+        # 3. Process the frame
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = Image(image_format=ImageFormat.SRGB, data=rgb_frame)
+
         results = detector.detect(mp_image)
 
         #Draw the hand landmarks on the frame
@@ -214,62 +240,100 @@ def calculate_amplitude(row):
     return thumb_index_distance
 
 
+def get_video_rotation(path):
+    """
+    Detects the rotation metadata of a video file using ffprobe.
+    Works consistently across Windows and Linux.
+    """
+    try:
+        probe = ffmpeg.probe(path)
+        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+
+        # Check for rotation in common metadata locations
+        if video_stream and 'tags' in video_stream:
+            rotation = abs(int(float(video_stream['tags'].get('rotate', 0))))
+            if rotation != 0:
+                return rotation
+
+        # Secondary check in side_data (common for mobile videos)
+        side_data = video_stream.get('side_data_list', [])
+        for data in side_data:
+            if 'rotation' in data:
+                return abs(data['rotation'])
+
+        return 0
+    except Exception:
+        return 0
+
 def draw_landmarks_on_image(rgb_image, detection_result):
+    """
+    Draws hand landmarks and handedness text on the image,
+    scaling all elements dynamically based on image resolution.
+    """
     height, width, _ = rgb_image.shape
 
-    # --- AJUSTES DINÁMICOS MEJORADOS ---
-    # Usamos una base de 1.0 y le sumamos proporcionalmente para que nunca sea diminuto
-    # 0.0015 suele ser el "sweet spot" para resoluciones altas
-    font_scale = max(1.0, width * 0.002)
+    # --- DYNAMIC SCALE CALCULATIONS ---
+    # Increased base scale for text and landmarks to improve visibility
+    font_scale = max(1.2, width * 0.0025)
+    thickness = max(2, int(width * 0.004))
+    margin = max(25, int(height * 0.06))
 
-    # Grosor mínimo de 2 para que sea legible en resoluciones bajas
-    thickness = max(2, int(width * 0.003))
+    # Proportional radius and thickness for landmarks
+    # We increase the multipliers slightly to ensure they aren't too thin
+    point_radius = max(2, int(width * 0.005))
+    line_thickness = max(1, int(width * 0.003))
 
-    # Margen proporcional pero con un mínimo de 20px
-    margin = max(20, int(height * 0.05))
+    # --- UPDATING DEFAULT STYLES ---
+    # We retrieve default styles and override only thickness and radius
+    # This preserves the original MediaPipe finger colors
+    landmark_style = solutions.drawing_styles.get_default_hand_landmarks_style()
+    for key in landmark_style:
+        landmark_style[key].thickness = line_thickness
+        landmark_style[key].circle_radius = point_radius
 
-    HANDEDNESS_TEXT_COLOR = (255, 0, 0)  # Rojo
+    connection_style = solutions.drawing_styles.get_default_hand_connections_style()
+    for key in connection_style:
+        connection_style[key].thickness = line_thickness
 
-    hand_landmarks_list = detection_result.hand_landmarks
-    handedness_list = detection_result.handedness
+    HANDEDNESS_TEXT_COLOR = (255, 0, 0)  # Red
     annotated_image = np.copy(rgb_image)
 
-    for idx in range(len(hand_landmarks_list)):
-        hand_landmarks = hand_landmarks_list[idx]
-        handedness = handedness_list[idx]
+    for idx in range(len(detection_result.hand_landmarks)):
+        hand_landmarks = detection_result.hand_landmarks[idx]
+        handedness = detection_result.handedness[idx]
 
-        # 1. Dibujar los landmarks (puntos y líneas)
+        # 1. Convert landmarks to protocol buffer format
         hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
         hand_landmarks_proto.landmark.extend([
             landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z)
             for landmark in hand_landmarks
         ])
 
+        # 2. Draw landmarks using updated styles
         solutions.drawing_utils.draw_landmarks(
             annotated_image,
             hand_landmarks_proto,
             solutions.hands.HAND_CONNECTIONS,
-            solutions.drawing_styles.get_default_hand_landmarks_style(),
-            solutions.drawing_styles.get_default_hand_connections_style())
+            landmark_style,
+            connection_style
+        )
 
-        # 2. Posicionamiento del texto
+        # 3. Text positioning logic
         x_coordinates = [landmark.x for landmark in hand_landmarks]
         y_coordinates = [landmark.y for landmark in hand_landmarks]
 
-        # Coordenadas en píxeles reales
+        # Convert normalized coordinates to pixel coordinates
         text_x = int(min(x_coordinates) * width)
         text_y = int(min(y_coordinates) * height) - margin
 
-        # 3. Corrección de seguridad: Que el texto no flote fuera de la imagen
-        # Si la mano está muy arriba, ponemos el texto debajo de la mano o al borde superior
+        # Safety check: Ensure text doesn't float outside image boundaries
         if text_y < 50:
             text_y = int(max(y_coordinates) * height) + margin + 20
 
-        # Si aún así se sale por abajo
         if text_y > height:
             text_y = 50
 
-        # 4. Dibujar el texto final
+        # 4. Draw the final handedness text
         cv2.putText(annotated_image, f"{handedness[0].category_name}",
                     (text_x, text_y),
                     cv2.FONT_HERSHEY_DUPLEX,

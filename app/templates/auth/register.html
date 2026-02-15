@@ -1,33 +1,114 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-sm-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="text-center h3 mb-0">{% block title %}Register User{% endblock %}</h1>
+                </div>
+                <div class="card-body">
+                    <form action="" method="post" id="registrationForm">
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-sm-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h1 class="text-center">{%  block title %}Register user{% endblock %}</h1>
-                    </div>
-                    <div class="card-body">
-                        <form action="" method="post">
-                            <div class="form-group">
-                                <label for="username">User name</label>
-                                <input type="text" class="form-control" id="username" name="username" required minlength="4" maxlength="20">
+                        <div class="form-group mb-3">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   required minlength="4" maxlength="20"
+                                   oninvalid="this.setCustomValidity('The Username field is required')"
+                                   oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   required
+                                   oninput="validateEmail(this)"
+                                   oninvalid="this.setCustomValidity('Please enter a valid email (e.g., name@domain.com)')">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       required
+                                       oninvalid="this.setCustomValidity('The First Name field cannot be empty')"
+                                       oninput="this.setCustomValidity('')">
                             </div>
-                            <div class="form-group">
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       required
+                                       oninvalid="this.setCustomValidity('The Last Name field cannot be empty')"
+                                       oninput="this.setCustomValidity('')">
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="institution">Institution</label>
+                            <input type="text" class="form-control" id="institution" name="institution"
+                                   required
+                                   oninvalid="this.setCustomValidity('Please specify your Institution')"
+                                   oninput="this.setCustomValidity('')">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="password">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required minlength="6" maxlength="20">
+                                <input type="password" class="form-control" id="password" name="password"
+                                       required minlength="6" maxlength="20"
+                                       oninput="this.setCustomValidity('')">
                             </div>
-                            <br>
-                            <div class="text-center">
-                                <input type="submit" class="btn btn-primary" value="Register user">
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                       required
+                                       oninput="checkPasswordMatch(this)">
                             </div>
-                        </form>
-                    </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
+<script>
+    /**
+     * Strict email validation using Regex
+     * Requires: user + @ + domain + . + extension (min 2 chars)
+     */
+    function validateEmail(input) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(input.value)) {
+            input.setCustomValidity('Format must be: user@domain.com (missing dot or extension)');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+
+    /**
+     * Validates that both password fields match
+     */
+    function checkPasswordMatch(input) {
+        const passwordField = document.getElementById('password');
+        if (input.value !== passwordField.value) {
+            input.setCustomValidity('Passwords do not match');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+
+    // Link password fields logic
+    document.getElementById('password').addEventListener('input', function() {
+        const confirmField = document.getElementById('confirm_password');
+        if (confirmField.value !== "") {
+            checkPasswordMatch(confirmField);
+        }
+    });
+</script>
 {% endblock %}

@@ -1,15 +1,29 @@
 from app import db
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # Identification and Login
     username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
 
-    def __init__(self, username, password):
+    # Personal Information
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    institution = db.Column(db.String(100), nullable=False)
+
+    def __init__(self, username, email, password, first_name, last_name, institution):
+        # Initialize the user instance with all required fields
         self.username = username
+        self.email = email
         self.password = password
+        self.first_name = first_name
+        self.last_name = last_name
+        self.institution = institution
 
     def __repr__(self):
+        # Username remains the primary identifier for debugging purposes
         return f'<User {self.username}>'
 
 
