@@ -12,17 +12,16 @@ def get_evaluation(filename,video_id):
     print(frame_percentage)
     print("####")
     if frame_percentage > 90:
-        #Cogemos el orden de las columnas según se entreno el modelo
+        #Aligning column order with the model's training schema
         order_columns_pkl_file = os.path.join("model", "order_colums.pkl")
         with open(order_columns_pkl_file, 'rb') as file:  
             order_columns = pickle.load(file)
 
-        #Cogemos el diccionaria tal cual de variables que selecciono tsfresh
+        #Loading the feature dictionary as outputted by the tsfresh selection process.
         dict_pkl_file = os.path.join("model", "dictionary.pkl")
         with open(dict_pkl_file, 'rb') as file:  
             mydict = pickle.load(file)
 
-        #data_final=data_final.drop(columns=['Distancia_norm'])
         data_final["id"]="UploadedVideo"
 
         X = extract_features(data_final, kind_to_fc_parameters =mydict,column_id="id",n_jobs=0)
@@ -30,8 +29,8 @@ def get_evaluation(filename,video_id):
         model_pkl_file = os.path.join("model", "model.pkl")
         with open(model_pkl_file, 'rb') as file:  
             model = pickle.load(file)
-        print("he cargado el modelo")
-        print("he cargado el modelo")
+        print("Model has been loaded")
+
         x_ordered=X[order_columns]
 
         value=model.predict(np.array(x_ordered))[0]

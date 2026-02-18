@@ -15,7 +15,6 @@ from mediapipe import solutions
 
 def processVideo(path_video,video_id):
 
-    #definición de las columnas de coordenadas
 
     #Columns index finger
     cols_index=['INDEX_X','INDEX_Y','INDEX_Z']

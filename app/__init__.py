@@ -31,10 +31,3 @@ def create_app():
 
     return app
 
-
-
-#python.exe -m flask run
-#$env:FLASK_APP = "app/__init__.py"
-#$env:FLASK_ENV = "development"
-#$env:FLASK_DEBUG = 1
-#In folder C:/Users/javier.amo/PycharmProjects/PDApp
