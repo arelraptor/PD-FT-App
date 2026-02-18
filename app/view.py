@@ -71,7 +71,7 @@ def upload():
             db.session.commit()
 
             # Execute processing script
-            subprocess.Popen([sys.executable, 'myscript.py', filename, str(video.id)])
+            subprocess.Popen([sys.executable, 'PD_Assessment.py', filename, str(video.id)])
 
             return redirect(url_for('view.list'))
         else:
