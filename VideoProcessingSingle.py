@@ -333,12 +333,12 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             text_y = 50
 
         # 4. Draw the final handedness text
-        cv2.putText(annotated_image, f"{handedness[0].category_name}",
+        '''cv2.putText(annotated_image, f"{handedness[0].category_name}",
                     (text_x, text_y),
                     cv2.FONT_HERSHEY_DUPLEX,
                     font_scale,
                     HANDEDNESS_TEXT_COLOR,
                     thickness,
-                    cv2.LINE_AA)
+                    cv2.LINE_AA)'''
 
     return annotated_image

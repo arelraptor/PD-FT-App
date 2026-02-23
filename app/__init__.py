@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, g, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -24,6 +24,9 @@ def create_app():
 
     @app.route('/')
     def index():
+        if g.user:
+            return redirect(url_for('view.list'))
+
         return render_template('index.html')
 
     with app.app_context():

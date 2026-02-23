@@ -11,6 +11,11 @@
                        disabled value="{{ video.title }}">
             </div>
 
+            <div class="form-group mb-3">
+                <label for="created_at" class="form-label">Upload Date</label>
+                <input type="text" class="form-control" id="created_at" disabled value="{{ video.created_at.strftime('%d/%m/%Y %H:%M') }}">
+            </div>
+
             <div class="form-group mb-4">
                 <label for="description" class="form-label">Description</label>
                 <textarea class="form-control" id="description" name="description"

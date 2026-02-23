@@ -1,5 +1,5 @@
 from app import db
-
+from datetime import datetime
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,14 +29,15 @@ class User(db.Model):
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_by = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     state = db.Column(db.Integer, default=0, nullable=False)
     prediction = db.Column(db.Integer)
-    visible = db.Column(db.Boolean,default=True,nullable=False)
+    visible = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
-    def __init__(self, created_by, title, description, state = 0, visible = True):
+    def __init__(self, created_by, title, description, state=0, visible=True):
         self.created_by = created_by
         self.title = title
         self.description = description

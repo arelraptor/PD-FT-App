@@ -8,6 +8,7 @@ import functools
 
 from .models import User
 from app import db
+from sqlalchemy import or_
 
 bp = Blueprint ('auth', __name__, url_prefix='/auth')
 
@@ -52,13 +53,15 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        login_input = request.form['username']
         password = request.form['password']
 
         error=None
 
         #Validate data
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(
+            or_(User.username == login_input, User.email == login_input)
+        ).first()
 
         if user is None or check_password_hash(user.password, password) is False:
             error = 'Incorrect username or password'

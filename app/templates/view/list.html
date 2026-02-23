@@ -15,7 +15,7 @@
                     <th class="col">Videos</th>
                     <th class="col">State</th>
                     <th class="col">Prediction</th>
-                    <th class="col text-center" colspan="2">Options</th>
+                    <th class="col text-center">Options</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,6 +32,7 @@
                                         {{ video.title }}
                                     {% endif %}
                                 </h5>
+                                <p class="text-secondary mb-1">Uploaded on: {{ video.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
                                 <p class="text-secondary">{{ video.description }}</p>
                                 {% if video.state==1 %}
                                     <div id="screenshot-{{ video.id }}" style="display: none;">
@@ -75,12 +76,12 @@
                             {% else %}
                                 <td class="cell-middle">N/A</td>
                             {% endif %}
-                            <td class="text-center">
+                        <td class="text-nowrap">
+                            <div class="d-flex justify-content-center gap-2">
                                 <a href="{{ url_for('view.update', id=video.id) }}" class="btn btn-info btn-sm">Edit</a>
-                            </td>
-                            <td class="text-center">
                                 <a href="{{ url_for('view.delete', id=video.id) }}" class="btn btn-danger btn-sm">Delete</a>
-                            </td>
+                            </div>
+                        </td>
                         </tr>
                     {% endif %}
                 {%  endfor %}
