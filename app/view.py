@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, g, flash, send_from_directory
+from werkzeug.security import generate_password_hash
 
-from app.auth import login_required
+from app.auth import login_required, admin_required
 from .models import Video, User
 from app import db
 
@@ -128,3 +129,72 @@ def play_video(filename):
 @bp.route('/help')
 def help():
     return render_template('help.html')
+
+@bp.route('/admin/users')
+@admin_required
+def admin_users():
+    users = User.query.all()
+    return render_template('admin_users.html', users=users)
+
+@bp.route('/admin/user/<int:id>/reset-password', methods=['POST'])
+@admin_required
+def reset_password(id):
+    user = User.query.get_or_404(id)
+    new_password = request.form.get('new_password')
+    if new_password:
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+        flash(f'Password updated for user {user.username}', 'success')
+    return redirect(url_for('view.admin_users'))
+
+@bp.route('/admin/user/<int:id>/toggle-admin', methods=['POST'])
+@admin_required
+def toggle_admin(id):
+    user = User.query.get_or_404(id)
+    # Evitar que el admin se quite permisos a sí mismo por error
+    if user.id == g.user.id:
+        flash("You cannot remove your own admin status.")
+    else:
+        user.is_admin = not user.is_admin
+        db.session.commit()
+    return redirect(url_for('view.admin_users'))
+
+# Añade esto a tu archivo app/view.py
+from werkzeug.security import generate_password_hash # Asegúrate de tener este import
+
+@bp.route('/admin/user/create', methods=['POST'])
+@admin_required
+def admin_create_user():
+    username = request.form['username'].lower()
+    email = request.form['email'].lower()
+    password = request.form['password']
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    institution = request.form['institution']
+    is_admin = True if request.form.get('is_admin') else False
+
+    error = None
+
+    # Validaciones básicas
+    if User.query.filter_by(username=username).first():
+        error = f'User {username} already exists'
+    elif User.query.filter_by(email=email).first():
+        error = f'Email {email} is already registered'
+
+    if error is None:
+        new_user = User(
+            username=username,
+            email=email,
+            password=generate_password_hash(password),
+            first_name=first_name,
+            last_name=last_name,
+            institution=institution,
+            is_admin=is_admin
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        flash(f'User {username} created successfully.', 'success')
+    else:
+        flash(error)
+
+    return redirect(url_for('view.admin_users'))

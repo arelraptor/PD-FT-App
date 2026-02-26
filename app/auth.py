@@ -1,10 +1,11 @@
 from flask import (
-        Blueprint,render_template, request, url_for,redirect,flash, session, g
+        Blueprint,render_template, request, url_for,redirect,flash, session, g, abort
     )
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import functools
+from functools import wraps
 
 from .models import User
 from app import db
@@ -12,10 +13,11 @@ from sqlalchemy import or_, func
 
 bp = Blueprint ('auth', __name__, url_prefix='/auth')
 
+
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        # Get all fields from the form
+        # Obtener campos del formulario
         username = request.form['username'].lower()
         email = request.form['email'].lower()
         password = request.form['password']
@@ -23,25 +25,33 @@ def register():
         last_name = request.form['last_name']
         institution = request.form['institution']
 
-        # Create user instance with hashed password
-        user = User(
-            username,
-            email,
-            generate_password_hash(password),
-            first_name,
-            last_name,
-            institution
-        )
-
         error = None
 
-        # Check if username or email already exists
+        # Validación de existencia previa
         if User.query.filter_by(username=username).first():
             error = f'User {username} already exists'
         elif User.query.filter_by(email=email).first():
             error = f'Email {email} is already registered'
 
         if error is None:
+            # LÓGICA DE PRIMER USUARIO ADMIN:
+            # Contamos cuántos usuarios existen en la base de datos
+            user_count = User.query.count()
+
+            # Si es el primero (count == 0), se le asigna is_admin = True
+            is_admin_role = True if user_count == 0 else False
+
+            # Crear instancia del usuario con el rol correspondiente
+            user = User(
+                username=username,
+                email=email,
+                password=generate_password_hash(password),
+                first_name=first_name,
+                last_name=last_name,
+                institution=institution,
+                is_admin=is_admin_role  # Asegúrate de que tu modelo User acepte este campo
+            )
+
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('auth.login'))
@@ -101,3 +111,12 @@ def login_required(view):
             return redirect(url_for('auth.login'))
         return view(**kwargs)
     return wrapped_view
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # If there is no user or the user is not an admin, we return a 403 (Forbidden) error.
+        if g.user is None or not g.user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function

@@ -81,6 +81,13 @@
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
           <ul class="navbar-nav align-items-center">
             {% if g.user %}
+              {% if g.user.is_admin %}
+                <li class="nav-item px-2">
+                    <a class="nav-link text-white fw-bold" href="{{ url_for('view.admin_users') }}" >
+                        <i class="bi bi-shield-lock"></i> <strong>Admin Panel</strong>
+                    </a>
+                </li>
+              {% endif %}
               <li class="nav-item">
                   <span class="nav-link active"><strong>User:</strong> {{ g.user.username }}</span>
               </li>
@@ -109,18 +116,22 @@
       </div>
     </nav>
 
-    {% for message in get_flashed_messages() %}
-        <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="container mt-3">
             <div class="row">
-                <div class="col-md-6 mx-auto">
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+              <div class="col-md-6 mx-auto">
+                <div class="alert alert-{{ category if category != 'message' else 'danger' }} alert-dismissible fade show shadow-sm" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
+              </div>
             </div>
-        </div>
-    {% endfor %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     <main class="py-4">
         {% block content %}
