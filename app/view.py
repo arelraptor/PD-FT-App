@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, g, flash
+from flask import Blueprint, render_template, request, redirect, url_for, g, flash, send_from_directory
 
 from app.auth import login_required
 from .models import Video, User
@@ -44,40 +44,51 @@ def list():
     videos= Video.query.all()
     return render_template('view/list.html', videos=videos)
 
+
 @bp.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
     if request.method == 'POST':
-        # Check if the file part is present in the request
-        if 'videofile' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-
         file = request.files['videofile']
-
-        # Validate file existence and extension
         if file and allowed_file(file.filename):
-            # 1. Define physical path to save the file
-            relative_path = os.path.join('uploads', file.filename)
-            filename = get_unique_name(relative_path)
+            # 1. Generar nombre único para el archivo FINAL (.mp4)
+            base_original, ext = os.path.splitext(file.filename)
+            target_relative_path = os.path.join('uploads', base_original + ".mp4")
+            final_mp4_path = get_unique_name(target_relative_path)
 
-            file.save(filename)
+            # 2. Guardar el archivo subido con un nombre temporal
+            temp_path = final_mp4_path + ext
+            file.save(temp_path)
 
-            description = request.form['description']
-            title = os.path.basename(filename)
+            # 3. Conversión Síncrona (Esperamos a que FFmpeg termine)
+            if ext.lower() != '.mp4':
+                try:
+                    # El flag '-y' sobreescribe, '-i' es entrada
+                    # IMPORTANTE: subprocess.run bloquea hasta que termina la conversión
+                    subprocess.run(['ffmpeg', '-y', '-i', temp_path, final_mp4_path],
+                                   check=True, capture_output=True)
+                    os.remove(temp_path)
+                except Exception as e:
+                    if os.path.exists(temp_path): os.remove(temp_path)
+                    flash(f"Error en conversión FFmpeg: {e}")
+                    return redirect(request.url)
+            else:
+                os.rename(temp_path, final_mp4_path)
+
+            # 4. Datos para la DB
+            description = request.form.get('description', '')
+            title = os.path.basename(final_mp4_path)
 
             video = Video(g.user.id, title, description)
             db.session.add(video)
             db.session.commit()
 
-            # Execute processing script
-            subprocess.Popen([sys.executable, 'PD_Assessment.py', filename, str(video.id)])
+            # 5. Ejecutar procesamiento (IMPORTANTE: Pasar la ruta relativa correcta)
+            # PD_Assessment.py espera el nombre del archivo.
+            # Asegúrate de que PD_Assessment busque en la carpeta 'uploads/'
+            subprocess.Popen([sys.executable, 'PD_Assessment.py', final_mp4_path, str(video.id)])
 
             return redirect(url_for('view.list'))
-        else:
-            # If the file is invalid, alert the user and block upload
-            flash('Invalid file type. Only .mov, .mkv, .mp4, and .avi are allowed.')
-            return redirect(request.url)
 
     return render_template('view/upload.html')
 
@@ -105,3 +116,15 @@ def delete(id):
 
         return redirect(url_for('view.list'))
     return render_template('view/delete.html',video=video)
+
+@bp.route('/play/<filename>')
+@login_required
+def play_video(filename):
+    # 'uploads' es la carpeta donde guardas los archivos según tu función upload()
+    # Asegúrate de que la ruta sea relativa a la raíz del proyecto o absoluta
+    upload_path = os.path.join(os.getcwd(), 'uploads')
+    return send_from_directory(upload_path, filename)
+
+@bp.route('/help')
+def help():
+    return render_template('help.html')

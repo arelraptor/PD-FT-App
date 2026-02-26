@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h1 class="text-center h3 mb-0">{% block title %}Help & Instructions{% endblock %}</h1>
+        </div>
+        <div class="card-body">
+            <section class="mb-4">
+                <h5><i class="bi bi-person-check"></i> Registration and Access</h5>
+                <p>
+                    To use the tool, you must first <strong>register</strong> an account.
+                    Once registered, you can log in to the system using either your <strong>username</strong> or your <strong>email address</strong>.
+                    Both methods are equally valid for authentication to ensure you can always access your videos and results easily.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h5><i class="bi bi-cloud-upload"></i> How to upload a video</h5>
+                <p>
+                    Go to the <strong>"Upload"</strong> section, select your video file, and provide a title.
+                    While <strong>MP4</strong> is the preferred format, the system also accepts other common extensions (such as <strong>MOV, AVI, or MKV</strong>).
+                    If your video is not an MP4, it will be <strong>automatically converted</strong> during the upload process to ensure full compatibility.
+                    Once uploaded, the system will process the video to detect movement patterns.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h5><i class="bi bi-info-circle"></i> Understanding Status Icons</h5>
+                <ul>
+                    <li><img src="{{ url_for('static', filename='img/settingsorange.png') }}" width="20"> <strong>Processing:</strong> The AI is currently analyzing your video.</li>
+                    <li><img src="{{ url_for('static', filename='img/checkmarkgreen.png') }}" width="20"> <strong>Success:</strong> Analysis complete. You can now see the prediction.</li>
+                    <li><img src="{{ url_for('static', filename='img/redcross.png') }}" width="20"> <strong>Error:</strong> Something went wrong (e.g., hand not detected).</li>
+                </ul>
+            </section>
+
+            <section class="mb-4">
+                <h5><i class="bi bi-bar-chart"></i> Prediction Scores (0-3+)</h5>
+                <p>The prediction indicates the severity of the movement disorder based on clinical scales:</p>
+                <ul>
+                    <li><strong>0:</strong> Normal: Fast, large movements with consistent rhythm.</li>
+                    <li><strong>1:</strong> light: Mild slowing or reduction in amplitude.</li>
+                    <li><strong>2:</strong> Mild: Moderate slowing/reduction; early, temporary fatiguing.</li>
+                    <li><strong>3+:</strong> Moderate: Marked slowing/reduction; consistent fatigue</li>
+                </ul>
+            </section>
+
+            <section class="mb-4">
+                <h5><i class="bi bi-info-square"></i> About this Project</h5>
+                <p>
+                    This application has been designed and developed by <strong>Javier Amo Salas</strong> as part of the <strong>"Doctoral Program in Industrial, Computer, and Civil Engineering and Technologies"</strong> at the <strong>University of Burgos</strong>.
+                </p>
+                <p>
+                    The project was supervised by <strong>Dr. Álvar Arnaiz-González</strong> and <strong>Dr. David García-García</strong>.
+                </p>
+                <p>
+                    The development has been made possible thanks to the invaluable collaboration of:
+                </p>
+                <ul>
+                    <li><strong>Hospital Universitario de Burgos (HUBU)</strong></li>
+                    <li><strong>Asociación Parkinson Burgos</strong></li>
+                </ul>
+                <p>
+                    Their support and expertise have been fundamental in the development of this tool for movement disorder analysis.
+                </p>
+            </section>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('view.list') }}" class="btn btn-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

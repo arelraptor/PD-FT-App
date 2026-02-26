@@ -8,7 +8,7 @@ import functools
 
 from .models import User
 from app import db
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 bp = Blueprint ('auth', __name__, url_prefix='/auth')
 
@@ -16,8 +16,8 @@ bp = Blueprint ('auth', __name__, url_prefix='/auth')
 def register():
     if request.method == 'POST':
         # Get all fields from the form
-        username = request.form['username']
-        email = request.form['email']
+        username = request.form['username'].lower()
+        email = request.form['email'].lower()
         password = request.form['password']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
@@ -50,19 +50,25 @@ def register():
 
     return render_template('auth/register.html')
 
+
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        login_input = request.form['username']
+        # Pasamos la entrada del usuario a minúsculas
+        login_input = request.form['username'].lower()
         password = request.form['password']
 
-        error=None
+        error = None
 
-        #Validate data
+        # Buscamos comparando ambos lados en minúsculas
         user = User.query.filter(
-            or_(User.username == login_input, User.email == login_input)
+            or_(
+                func.lower(User.username) == login_input,
+                func.lower(User.email) == login_input
+            )
         ).first()
 
+        # La validación del password NO se toca, así se mantiene Case-Sensitive
         if user is None or check_password_hash(user.password, password) is False:
             error = 'Incorrect username or password'
 
@@ -70,6 +76,7 @@ def login():
             session.clear()
             session['user_id'] = user.id
             return redirect(url_for('view.list'))
+
         flash(error)
 
     return render_template('auth/login.html')
