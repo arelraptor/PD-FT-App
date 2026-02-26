@@ -17,7 +17,6 @@ bp = Blueprint ('auth', __name__, url_prefix='/auth')
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        # Obtener campos del formulario
         username = request.form['username'].lower()
         email = request.form['email'].lower()
         password = request.form['password']
@@ -27,21 +26,19 @@ def register():
 
         error = None
 
-        # Validación de existencia previa
         if User.query.filter_by(username=username).first():
             error = f'User {username} already exists'
         elif User.query.filter_by(email=email).first():
             error = f'Email {email} is already registered'
 
         if error is None:
-            # LÓGICA DE PRIMER USUARIO ADMIN:
-            # Contamos cuántos usuarios existen en la base de datos
-            user_count = User.query.count()
+            # FIRST ADMIN USER LOGIC:
+            # Count how many users exist in the database
+            # If it is the first one (count == 0), assign is_admin = True
 
-            # Si es el primero (count == 0), se le asigna is_admin = True
+            user_count = User.query.count()
             is_admin_role = True if user_count == 0 else False
 
-            # Crear instancia del usuario con el rol correspondiente
             user = User(
                 username=username,
                 email=email,
@@ -49,7 +46,7 @@ def register():
                 first_name=first_name,
                 last_name=last_name,
                 institution=institution,
-                is_admin=is_admin_role  # Asegúrate de que tu modelo User acepte este campo
+                is_admin=is_admin_role
             )
 
             db.session.add(user)
@@ -64,13 +61,11 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        # Pasamos la entrada del usuario a minúsculas
         login_input = request.form['username'].lower()
         password = request.form['password']
 
         error = None
 
-        # Buscamos comparando ambos lados en minúsculas
         user = User.query.filter(
             or_(
                 func.lower(User.username) == login_input,
@@ -78,9 +73,10 @@ def login():
             )
         ).first()
 
-        # La validación del password NO se toca, así se mantiene Case-Sensitive
         if user is None or check_password_hash(user.password, password) is False:
             error = 'Incorrect username or password'
+        elif user.is_enabled is False:
+            error = 'This account is disabled. Please contact an administrator.'
 
         if error is None:
             session.clear()

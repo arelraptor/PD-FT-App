@@ -8,13 +8,14 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.Text, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    is_enabled = db.Column(db.Boolean, default=True)
 
     # Personal Information
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     institution = db.Column(db.String(100), nullable=False)
 
-    def __init__(self, username, email, password, first_name, last_name, institution,is_admin=False):
+    def __init__(self, username, email, password, first_name, last_name, institution,is_admin=False, is_enabled=True):
         # Initialize the user instance with all required fields
         self.username = username
         self.email = email
@@ -23,6 +24,7 @@ class User(db.Model):
         self.last_name = last_name
         self.institution = institution
         self.is_admin = is_admin
+        self.is_enabled = is_enabled
 
     def __repr__(self):
         # Username remains the primary identifier for debugging purposes

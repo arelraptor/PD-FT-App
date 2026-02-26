@@ -52,31 +52,25 @@ def upload():
     if request.method == 'POST':
         file = request.files['videofile']
         if file and allowed_file(file.filename):
-            # 1. Generar nombre único para el archivo FINAL (.mp4)
             base_original, ext = os.path.splitext(file.filename)
             target_relative_path = os.path.join('uploads', base_original + ".mp4")
             final_mp4_path = get_unique_name(target_relative_path)
 
-            # 2. Guardar el archivo subido con un nombre temporal
             temp_path = final_mp4_path + ext
             file.save(temp_path)
 
-            # 3. Conversión Síncrona (Esperamos a que FFmpeg termine)
             if ext.lower() != '.mp4':
                 try:
-                    # El flag '-y' sobreescribe, '-i' es entrada
-                    # IMPORTANTE: subprocess.run bloquea hasta que termina la conversión
                     subprocess.run(['ffmpeg', '-y', '-i', temp_path, final_mp4_path],
                                    check=True, capture_output=True)
                     os.remove(temp_path)
                 except Exception as e:
                     if os.path.exists(temp_path): os.remove(temp_path)
-                    flash(f"Error en conversión FFmpeg: {e}")
+                    flash(f"Error in FFmpeg conversion: {e}")
                     return redirect(request.url)
             else:
                 os.rename(temp_path, final_mp4_path)
 
-            # 4. Datos para la DB
             description = request.form.get('description', '')
             title = os.path.basename(final_mp4_path)
 
@@ -84,9 +78,6 @@ def upload():
             db.session.add(video)
             db.session.commit()
 
-            # 5. Ejecutar procesamiento (IMPORTANTE: Pasar la ruta relativa correcta)
-            # PD_Assessment.py espera el nombre del archivo.
-            # Asegúrate de que PD_Assessment busque en la carpeta 'uploads/'
             subprocess.Popen([sys.executable, 'PD_Assessment.py', final_mp4_path, str(video.id)])
 
             return redirect(url_for('view.list'))
@@ -121,8 +112,6 @@ def delete(id):
 @bp.route('/play/<filename>')
 @login_required
 def play_video(filename):
-    # 'uploads' es la carpeta donde guardas los archivos según tu función upload()
-    # Asegúrate de que la ruta sea relativa a la raíz del proyecto o absoluta
     upload_path = os.path.join(os.getcwd(), 'uploads')
     return send_from_directory(upload_path, filename)
 
@@ -151,7 +140,6 @@ def reset_password(id):
 @admin_required
 def toggle_admin(id):
     user = User.query.get_or_404(id)
-    # Evitar que el admin se quite permisos a sí mismo por error
     if user.id == g.user.id:
         flash("You cannot remove your own admin status.")
     else:
@@ -159,8 +147,6 @@ def toggle_admin(id):
         db.session.commit()
     return redirect(url_for('view.admin_users'))
 
-# Añade esto a tu archivo app/view.py
-from werkzeug.security import generate_password_hash # Asegúrate de tener este import
 
 @bp.route('/admin/user/create', methods=['POST'])
 @admin_required
@@ -175,7 +161,6 @@ def admin_create_user():
 
     error = None
 
-    # Validaciones básicas
     if User.query.filter_by(username=username).first():
         error = f'User {username} already exists'
     elif User.query.filter_by(email=email).first():
@@ -196,5 +181,21 @@ def admin_create_user():
         flash(f'User {username} created successfully.', 'success')
     else:
         flash(error)
+
+    return redirect(url_for('view.admin_users'))
+
+
+@bp.route('/admin/user/<int:id>/toggle-status', methods=['POST'])
+@admin_required
+def toggle_status(id):
+    user = User.query.get_or_404(id)
+    if user.id == g.user.id:
+        flash("You cannot disable your own account.", "danger")
+    else:
+        user.is_enabled = not user.is_enabled
+        db.session.commit()
+
+        status_text = "enabled" if user.is_enabled else "disabled"
+        flash(f"Status for {user.username} updated to {status_text}.", "success")
 
     return redirect(url_for('view.admin_users'))
