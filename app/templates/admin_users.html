@@ -52,7 +52,7 @@
 
                         <form action="{{ url_for('view.toggle_admin', id=user.id) }}" method="POST">
                             <button type="submit" class="btn btn-outline-info btn-sm">
-                                {{ "Demote" if user.is_admin else "Promote" }}
+                                {{ "Revoke Admin" if user.is_admin else "Grant Admin" }}
                             </button>
                         </form>
 

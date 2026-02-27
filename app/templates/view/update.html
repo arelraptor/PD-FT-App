@@ -16,12 +16,19 @@
                 <label for="description">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="3">{{ video.description }}</textarea>
             </div>
+
+            <div class="d-flex justify-content-center gap-2 mt-3 mb-3">
+                <button type="button" class="btn btn-success"
+                        onclick="openVideoModal('{{ url_for('view.play_video', filename=video.title) }}')">
+                    Play Video
+                </button>
+            </div>
+
             {% if video.state==1 %}
                 <div class="text-center mb-3">
                     <img src="{{ url_for('static', filename='screenshots/' + video.id|string +'.png') }}" alt="Video image" class="img-fluid" style="max-height: 500px;">
                 </div>
             {% endif %}
-            <br>
 
             <div class="text-center">
                 <input type="submit" class="btn btn-primary" value="Save changes">

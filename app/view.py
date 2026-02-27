@@ -145,6 +145,10 @@ def toggle_admin(id):
     else:
         user.is_admin = not user.is_admin
         db.session.commit()
+
+        status_text = "granted" if user.is_admin else "revoked"
+        flash(f"Successfully {status_text} ADMIN rights for user {user.username}.", "success")
+
     return redirect(url_for('view.admin_users'))
 
 
