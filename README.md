@@ -30,7 +30,7 @@ This code has been written in Python and a Jupyter Notebook is also used for run
 You can create a conda environment with the needed packages running:
 
 ```setup
-conda create --name new_env --file requirements.txt
+conda env create -f environment.yml
 ```
 
 ## Usage Instructions 

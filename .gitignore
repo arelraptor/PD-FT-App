@@ -166,3 +166,4 @@ cython_debug/
 /app/static/screenshots/*.png
 
 run_app.txt
+requirements.txt
