@@ -23,7 +23,7 @@ The structure of the zip file is:
 
 ## Code Information
 
-This code has been written in Python and a Jupyter Notebook is also used for running the pipeline. In te sections below, you can find the requirements and how to use this code.
+This code has been written in Python and a Jupyter Notebook is also used for running the pipeline. In the sections below, you can find the requirements and how to use this code.
 
 ## Requirements
 
